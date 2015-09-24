@@ -6,24 +6,20 @@ from aqt.utils import showInfo, tooltip
 prevBottomHtml = Reviewer._bottomHTML
     
 def bottomHtml(self):
-    disabled = ''
-    if len(self.card.note().cards()) != 2:
-        # disable the button if there are multiple cards in the note
-        disabled = 'disabled=disabled'
-    
+   
     html = prevBottomHtml(self)
     
     html += """
 <!-- this is a hack to work around the embedded quotes. -->
 <div id=acotemp>
-    <span> </span><br><button %(disabled)s onclick="py.link('flipcardorder');">%(flipcardorder)s</button>
+    <span> </span><br><button onclick="py.link('flipcardorder');">%(flipcardorder)s</button>
 </div>
 <script>
 var content = $('#acotemp').html();
 $('#acotemp').remove();
 $('#time').parent().before('<td width=100 align=right valign=top class=stat>' + content +'</td>');
 </script>  
-""" % dict(flipcardorder=_("Flip Card Order"), disabled=disabled)
+""" % dict(flipcardorder=_("Flip Card Order"))
 
     return html
     
@@ -45,7 +41,6 @@ def flipCardOrder(self):
     otherCard = getOtherCard(self, curCard)
     
     if len(self.card.note().cards()) != 2:
-        # since the button is disabled, this should never happen.
         showInfo('This note has more than two cards.\nUnable to flip.')
     else:
         # enable undo
