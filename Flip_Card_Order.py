@@ -40,27 +40,39 @@ Reviewer._linkHandler = wrap(Reviewer._linkHandler, linkHandler, "around")
 
 def flipCardOrder(self):
     "Execute the flip"
+    
+    curCard = self.card
+    otherCard = getOtherCard(self, curCard)
+    
     if len(self.card.note().cards()) != 2:
         # since the button is disabled, this should never happen.
         showInfo('This note has more than two cards.\nUnable to flip.')
     else:
         # enable undo
         self.mw.checkpoint(_("Flip Card Order"))
-        
-        curCard = self.card
-        curId = curCard.id
-        note = curCard.note()
-        otherId = [c.id for c in note.cards() if c.id != curId][0]
-        otherCard = self.mw.col.getCard(otherId)
- 
+
+        if curCard.queue == 0 or curCard.queue == 1:
+            # If the current card is in the new or learning queue
+            nconf = self.mw.col.sched._newConf(curCard)
+            buryNew = nconf.get("bury", True)
+            if buryNew:
+                # new cards are supposed to be buried.
+                self.mw.col.sched.buryCards([curCard.id])
+        elif curCard.queue == 2:
+            rconf = self.mw.col.sched._revConf(curCard)
+            buryRev = rconf.get("bury", True)
+            if buryRev:
+                # reviews are supposed to be buried.
+                self.mw.col.sched.buryCards([curCard.id])
+            
         if otherCard.queue == -2:
             # bury the current card if the other is buried.
-            self.mw.col.sched.buryCards([self.card.id])
+            self.mw.col.sched.buryCards([curCard.id])
             #unbury the other card
             otherCard.queue = otherCard.type
+            otherCard.flush()
             
-        otherCard.flush()
-        curCard.flush()
+        self.mw.reset()
         
         # Make the other card current
         self.card = otherCard
@@ -68,3 +80,9 @@ def flipCardOrder(self):
         
         self._showQuestion()
         tooltip(_("Cards Flipped."))
+        
+def getOtherCard(self, card):
+    curId = card.id
+    note = card.note()
+    otherId = [c.id for c in note.cards() if c.id != curId][0]
+    return self.mw.col.getCard(otherId)
