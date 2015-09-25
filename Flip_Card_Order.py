@@ -1,3 +1,8 @@
+# Version: 1.0
+# See github page to report issues or to contribute:
+# https://github.com/Icode4food/anki-flip-card-order
+# License: The MIT License (MIT)
+
 from aqt import mw
 from aqt.reviewer import Reviewer
 from anki.hooks import wrap
@@ -42,6 +47,10 @@ def flipCardOrder(self):
     
     if len(self.card.note().cards()) != 2:
         showInfo('This note has more than two cards.\nUnable to flip.')
+    elif curCard.type == 2:
+        showInfo('This card is not new and can\'t be flipped')
+    elif otherCard.type == 2:
+        showInfo('You have already learned the other card')
     else:
         # enable undo
         self.mw.checkpoint(_("Flip Card Order"))
